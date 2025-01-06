@@ -9,6 +9,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    ad: '',
+    soyad: '',
+    tcKimlik: '',
+    dogumTarihi: '',
+    telefon: '',
+    email: '',
+    adres: '',
+  });
 
   useEffect(() => {
     const userId = Cookies.get('userId');
@@ -61,6 +70,52 @@ export default function Dashboard() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/hastalar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          doktorId: userInfo.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Hasta kaydedilemedi');
+      }
+
+      setFormData({
+        ad: '',
+        soyad: '',
+        tcKimlik: '',
+        dogumTarihi: '',
+        telefon: '',
+        email: '',
+        adres: '',
+      });
+
+      router.refresh();
+    } catch (err) {
+      console.error('Kayıt hatası:', err);
+      setError(err instanceof Error ? err.message : 'Kayıt sırasında bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -91,40 +146,160 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a
-              href="/hastalar"
-              className="block p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <h2 className="text-xl font-semibold text-blue-900 mb-2">Hasta Listesi</h2>
-              <p className="text-blue-700">Tüm hastaları görüntüle ve yönet</p>
-            </a>
-
-            <a
-              href="/hasta-kayit"
-              className="block p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-            >
-              <h2 className="text-xl font-semibold text-green-900 mb-2">Yeni Hasta</h2>
-              <p className="text-green-700">Yeni hasta kaydı oluştur</p>
-            </a>
-
-            <a
-              href="/islemler"
-              className="block p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-            >
-              <h2 className="text-xl font-semibold text-purple-900 mb-2">İşlemler</h2>
-              <p className="text-purple-700">İşlem listesini görüntüle ve düzenle</p>
-            </a>
-
-            {userInfo?.role === 'admin' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Sol Taraf: Menü */}
+            <div className="space-y-4">
               <a
-                href="/uyeler"
-                className="block p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+                href="/hastalar"
+                className="block p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
               >
-                <h2 className="text-xl font-semibold text-yellow-900 mb-2">Kullanıcılar</h2>
-                <p className="text-yellow-700">Kullanıcıları yönet</p>
+                <h2 className="text-xl font-semibold text-blue-900 mb-2">Hasta Listesi</h2>
+                <p className="text-blue-700">Tüm hastaları görüntüle ve yönet</p>
               </a>
-            )}
+
+              <a
+                href="/islemler"
+                className="block p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              >
+                <h2 className="text-xl font-semibold text-purple-900 mb-2">İşlemler</h2>
+                <p className="text-purple-700">İşlem listesini görüntüle ve düzenle</p>
+              </a>
+
+              {userInfo?.role === 'admin' && (
+                <a
+                  href="/uyeler"
+                  className="block p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+                >
+                  <h2 className="text-xl font-semibold text-yellow-900 mb-2">Kullanıcılar</h2>
+                  <p className="text-yellow-700">Kullanıcıları yönet</p>
+                </a>
+              )}
+            </div>
+
+            {/* Sağ Taraf: Yeni Hasta Kaydı */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Yeni Hasta Kaydı</h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="ad" className="block text-sm font-medium text-gray-700">
+                      Ad
+                    </label>
+                    <input
+                      type="text"
+                      id="ad"
+                      name="ad"
+                      value={formData.ad}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="soyad" className="block text-sm font-medium text-gray-700">
+                      Soyad
+                    </label>
+                    <input
+                      type="text"
+                      id="soyad"
+                      name="soyad"
+                      value={formData.soyad}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="tcKimlik" className="block text-sm font-medium text-gray-700">
+                      T.C. Kimlik No
+                    </label>
+                    <input
+                      type="text"
+                      id="tcKimlik"
+                      name="tcKimlik"
+                      value={formData.tcKimlik}
+                      onChange={handleChange}
+                      required
+                      maxLength={11}
+                      pattern="[0-9]{11}"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="dogumTarihi" className="block text-sm font-medium text-gray-700">
+                      Doğum Tarihi
+                    </label>
+                    <input
+                      type="date"
+                      id="dogumTarihi"
+                      name="dogumTarihi"
+                      value={formData.dogumTarihi}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="telefon" className="block text-sm font-medium text-gray-700">
+                      Telefon
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefon"
+                      name="telefon"
+                      value={formData.telefon}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      E-posta
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="adres" className="block text-sm font-medium text-gray-700">
+                    Adres
+                  </label>
+                  <textarea
+                    id="adres"
+                    name="adres"
+                    value={formData.adres}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      loading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
