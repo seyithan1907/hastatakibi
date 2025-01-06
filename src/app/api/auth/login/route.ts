@@ -10,33 +10,36 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log('Gelen giriş bilgileri:', {
+    console.log('Gelen istek:', {
       username: body.username,
-      password: '***'
+      passwordLength: body.password?.length
     });
 
+    // Kullanıcıyı bul
     const user = await prisma.user.findUnique({
       where: { username: body.username },
     });
 
-    console.log('Bulunan kullanıcı:', user ? {
-      ...user,
-      password: '***'
-    } : null);
+    console.log('Veritabanı sorgusu sonucu:', user ? {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      aktif: user.aktif,
+      passwordLength: user.password?.length
+    } : 'Kullanıcı bulunamadı');
 
     if (!user) {
-      console.log('Kullanıcı bulunamadı');
       return NextResponse.json(
         { error: 'Geçersiz kullanıcı adı veya şifre' },
         { status: 401 }
       );
     }
 
+    // Şifre kontrolü
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
-    console.log('Şifre kontrolü:', { isPasswordValid });
+    console.log('Şifre kontrolü sonucu:', { isPasswordValid });
 
     if (!isPasswordValid) {
-      console.log('Şifre geçersiz');
       return NextResponse.json(
         { error: 'Geçersiz kullanıcı adı veya şifre' },
         { status: 401 }
@@ -44,7 +47,6 @@ export async function POST(request: Request) {
     }
 
     if (!user.aktif) {
-      console.log('Kullanıcı aktif değil');
       return NextResponse.json(
         { error: 'Hesabınız devre dışı bırakılmış' },
         { status: 401 }
@@ -52,31 +54,25 @@ export async function POST(request: Request) {
     }
 
     // Cookie'leri ayarla
-    const cookieStore = await cookies();
-    await cookieStore.set({
-      name: 'auth',
-      value: user.role,
-      httpOnly: false
-    });
-    await cookieStore.set({
-      name: 'userId',
-      value: user.id.toString(),
-      httpOnly: false
-    });
-    await cookieStore.set({
-      name: 'username',
-      value: user.username,
-      httpOnly: false
-    });
+    const cookieStore = cookies();
+    cookieStore.set('auth', user.role);
+    cookieStore.set('userId', user.id.toString());
+    cookieStore.set('username', user.username);
 
     // Kullanıcı bilgilerini döndür (şifre hariç)
     const { password, ...userWithoutPassword } = user;
     return NextResponse.json(userWithoutPassword);
-  } catch (error) {
-    console.error('Giriş hatası:', error);
+  } catch (error: any) {
+    console.error('API Hatası:', {
+      message: error.message,
+      stack: error.stack
+    });
+    
     return NextResponse.json(
-      { error: 'Giriş sırasında bir hata oluştu' },
+      { error: 'Giriş sırasında bir hata oluştu: ' + error.message },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 } 

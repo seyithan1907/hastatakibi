@@ -22,6 +22,8 @@ function LoginForm() {
     setError('');
 
     try {
+      console.log('Giriş denemesi:', { username: formData.username });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -31,6 +33,7 @@ function LoginForm() {
       });
 
       const data = await response.json();
+      console.log('API yanıtı:', { status: response.status, data });
 
       if (!response.ok) {
         throw new Error(data.error || 'Giriş başarısız');
@@ -43,8 +46,8 @@ function LoginForm() {
 
       router.push(redirectUrl);
     } catch (err: any) {
+      console.error('Giriş hatası detayları:', err);
       setError(err.message || 'Geçersiz kullanıcı adı veya şifre');
-      console.error('Giriş hatası:', err);
     } finally {
       setLoading(false);
     }
