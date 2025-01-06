@@ -25,6 +25,7 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
   const [seciliDis, setSeciliDis] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [tedaviPlanlari, setTedaviPlanlari] = useState<TedaviPlani[]>([]);
+  const [aktifCene, setAktifCene] = useState<'ust' | 'alt'>('ust');
 
   const disNumaralari = {
     ustSag: ['18', '17', '16', '15', '14', '13', '12', '11'],
@@ -133,80 +134,154 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
       )}
 
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-2 gap-8">
-          {/* Üst Dişler */}
-          <div className="flex justify-end gap-2">
-            {disNumaralari.ustSag.map((no) => (
-              <button
-                key={no}
-                onClick={() => handleDisSecimi(no)}
-                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                  ${tedaviPlanlari.some(p => p.disNo === no)
-                    ? 'border-green-500 bg-green-100 text-green-700'
-                    : seciliDis === no 
-                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }`}
-              >
-                {no}
-              </button>
-            ))}
-          </div>
-          <div className="flex justify-start gap-2">
-            {disNumaralari.ustSol.map((no) => (
-              <button
-                key={no}
-                onClick={() => handleDisSecimi(no)}
-                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                  ${tedaviPlanlari.some(p => p.disNo === no)
-                    ? 'border-green-500 bg-green-100 text-green-700'
-                    : seciliDis === no 
-                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }`}
-              >
-                {no}
-              </button>
-            ))}
-          </div>
+        {/* Çene Seçimi */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => setAktifCene('ust')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              aktifCene === 'ust'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Üst Çene
+          </button>
+          <button
+            onClick={() => setAktifCene('alt')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              aktifCene === 'alt'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Alt Çene
+          </button>
+        </div>
 
-          {/* Alt Dişler */}
-          <div className="flex justify-end gap-2">
-            {disNumaralari.altSag.map((no) => (
-              <button
-                key={no}
-                onClick={() => handleDisSecimi(no)}
-                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                  ${tedaviPlanlari.some(p => p.disNo === no)
-                    ? 'border-green-500 bg-green-100 text-green-700'
-                    : seciliDis === no 
-                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }`}
-              >
-                {no}
-              </button>
-            ))}
-          </div>
-          <div className="flex justify-start gap-2">
-            {disNumaralari.altSol.map((no) => (
-              <button
-                key={no}
-                onClick={() => handleDisSecimi(no)}
-                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                  ${tedaviPlanlari.some(p => p.disNo === no)
-                    ? 'border-green-500 bg-green-100 text-green-700'
-                    : seciliDis === no 
-                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }`}
-              >
-                {no}
-              </button>
-            ))}
-          </div>
+        {/* Diş Butonları */}
+        <div className="grid grid-cols-2 gap-8">
+          {aktifCene === 'ust' ? (
+            <>
+              {/* Üst Çene */}
+              <div className="flex justify-end gap-2">
+                {disNumaralari.ustSag.map((no) => (
+                  <button
+                    key={no}
+                    onClick={() => handleDisSecimi(no)}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                      ${tedaviPlanlari.some(p => p.disNo === no)
+                        ? 'border-green-500 bg-green-100 text-green-700'
+                        : seciliDis === no 
+                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                  >
+                    {no}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-start gap-2">
+                {disNumaralari.ustSol.map((no) => (
+                  <button
+                    key={no}
+                    onClick={() => handleDisSecimi(no)}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                      ${tedaviPlanlari.some(p => p.disNo === no)
+                        ? 'border-green-500 bg-green-100 text-green-700'
+                        : seciliDis === no 
+                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                  >
+                    {no}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Alt Çene */}
+              <div className="flex justify-end gap-2">
+                {disNumaralari.altSag.map((no) => (
+                  <button
+                    key={no}
+                    onClick={() => handleDisSecimi(no)}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                      ${tedaviPlanlari.some(p => p.disNo === no)
+                        ? 'border-green-500 bg-green-100 text-green-700'
+                        : seciliDis === no 
+                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                  >
+                    {no}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-start gap-2">
+                {disNumaralari.altSol.map((no) => (
+                  <button
+                    key={no}
+                    onClick={() => handleDisSecimi(no)}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                      ${tedaviPlanlari.some(p => p.disNo === no)
+                        ? 'border-green-500 bg-green-100 text-green-700'
+                        : seciliDis === no 
+                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                  >
+                    {no}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Seçilen Tedaviler */}
+      {tedaviPlanlari.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Seçilen Tedaviler</h3>
+          <div className="space-y-4">
+            {tedaviPlanlari.map((plan, index) => (
+              <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="font-medium text-gray-900">Diş {plan.disNo}:</span>
+                  <span className="ml-2 text-gray-600">{plan.islem}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-900 font-medium">{plan.fiyat.toLocaleString('tr-TR')} ₺</span>
+                  <button
+                    onClick={() => setTedaviPlanlari(prev => prev.filter((_, i) => i !== index))}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <span className="text-lg font-semibold text-gray-900">Toplam:</span>
+              <span className="text-lg font-bold text-blue-600">{toplamFiyat.toLocaleString('tr-TR')} ₺</span>
+            </div>
+          </div>
+          <div className="mt-6">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {loading ? 'Kaydediliyor...' : 'Tedavi Planını Kaydet'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* İşlem Seçme Popup'ı */}
       {showPopup && (
@@ -247,62 +322,6 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
                 Kapat
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Seçilen İşlemler Listesi */}
-      {tedaviPlanlari.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Seçilen İşlemler</h2>
-            <div className="text-sm">
-              <span className="font-medium">Toplam: </span>
-              <span className="text-gray-900">{toplamFiyat.toLocaleString('tr-TR')} ₺</span>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Diş No
-                  </th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlem
-                  </th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fiyat
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {tedaviPlanlari.map((plan, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {plan.disNo}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {plan.islem}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {plan.fiyat.toLocaleString('tr-TR')} ₺
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {loading ? 'Kaydediliyor...' : 'Tedavi Planını Kaydet'}
-            </button>
           </div>
         </div>
       )}

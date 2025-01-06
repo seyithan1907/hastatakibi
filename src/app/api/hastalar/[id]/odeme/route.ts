@@ -7,23 +7,26 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const hastaId = parseInt(id);
+    const resolvedParams = await params;
+    const hastaId = parseInt(resolvedParams.id);
+
+    if (isNaN(hastaId)) {
+      return NextResponse.json(
+        { data: null, error: 'Geçersiz hasta ID' },
+        { status: 400 }
+      );
+    }
 
     const odemeler = await prisma.odeme.findMany({
-      where: {
-        hastaId: hastaId,
-      },
-      orderBy: {
-        tarih: 'desc',
-      },
+      where: { hastaId },
+      orderBy: { tarih: 'desc' },
     });
 
-    return NextResponse.json({ data: odemeler });
+    return NextResponse.json({ data: odemeler, error: null });
   } catch (error) {
-    console.error('Ödemeler getirilirken hata:', error);
+    console.error('Ödeme geçmişi getirme hatası:', error);
     return NextResponse.json(
-      { error: 'Ödemeler getirilemedi' },
+      { data: null, error: 'Ödeme geçmişi getirilemedi' },
       { status: 500 }
     );
   }
@@ -35,55 +38,102 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const hastaId = parseInt(id);
+    const resolvedParams = await params;
+    const hastaId = parseInt(resolvedParams.id);
+
+    if (isNaN(hastaId)) {
+      return NextResponse.json(
+        { data: null, error: 'Geçersiz hasta ID' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
+    const { miktar, tip, notlar } = body;
 
-    // Ödeme tutarını kontrol et
-    const miktar = parseFloat(body.miktar.toString());
-    if (isNaN(miktar) || miktar <= 0) {
+    if (!miktar || !tip) {
       return NextResponse.json(
-        { error: 'Geçersiz ödeme tutarı' },
+        { data: null, error: 'Miktar ve tip alanları zorunludur' },
         { status: 400 }
       );
     }
 
-    // Ödeme tipini kontrol et
-    const tip = body.tip;
-    if (!['Nakit', 'Kredi Kartı', 'Havale/EFT'].includes(tip)) {
-      return NextResponse.json(
-        { error: 'Geçersiz ödeme tipi' },
-        { status: 400 }
-      );
-    }
+    // Ödemeyi kaydet
+    const odeme = await prisma.odeme.create({
+      data: {
+        hastaId,
+        miktar,
+        tip,
+        notlar,
+        tarih: new Date(),
+      },
+    });
 
-    // Prisma transaction ile hem ödemeyi kaydet hem de hasta toplam ücretini güncelle
-    const [odeme, hasta] = await prisma.$transaction([
-      // Yeni ödemeyi kaydet
-      prisma.odeme.create({
-        data: {
-          hastaId,
-          miktar,
-          tip,
-          notlar: body.notlar,
+    // Hastanın alınan ücretini güncelle
+    const hasta = await prisma.hasta.update({
+      where: { id: hastaId },
+      data: {
+        alinanUcret: {
+          increment: miktar,
         },
+      },
+    });
+
+    return NextResponse.json({ data: { odeme, hasta }, error: null });
+  } catch (error) {
+    console.error('Ödeme ekleme hatası:', error);
+    return NextResponse.json(
+      { data: null, error: 'Ödeme eklenemedi' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: { id: string; odemeId: string } }) {
+  try {
+    const resolvedParams = await params;
+    const hastaId = parseInt(resolvedParams.id);
+    const odemeId = parseInt(resolvedParams.odemeId);
+
+    if (isNaN(hastaId) || isNaN(odemeId)) {
+      return NextResponse.json(
+        { data: null, error: 'Geçersiz ID' },
+        { status: 400 }
+      );
+    }
+
+    // Önce ödemeyi bul
+    const odeme = await prisma.odeme.findUnique({
+      where: { id: odemeId },
+    });
+
+    if (!odeme) {
+      return NextResponse.json(
+        { data: null, error: 'Ödeme bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    // Ödemeyi sil ve hastanın alınan ücretini güncelle
+    const [deletedOdeme, hasta] = await prisma.$transaction([
+      prisma.odeme.delete({
+        where: { id: odemeId },
       }),
-      // Hasta toplam ücretini güncelle
       prisma.hasta.update({
         where: { id: hastaId },
         data: {
           alinanUcret: {
-            increment: miktar,
+            decrement: odeme.miktar,
           },
         },
       }),
     ]);
 
-    return NextResponse.json({ data: { odeme, hasta } });
+    return NextResponse.json({ data: { odeme: deletedOdeme, hasta }, error: null });
   } catch (error) {
-    console.error('Ödeme eklenirken hata:', error);
+    console.error('Ödeme silme hatası:', error);
     return NextResponse.json(
-      { error: 'Ödeme eklenemedi' },
+      { data: null, error: 'Ödeme silinemedi' },
       { status: 500 }
     );
   }
