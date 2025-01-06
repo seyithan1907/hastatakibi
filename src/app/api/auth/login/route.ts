@@ -5,7 +5,20 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { cookies } from 'next/headers';
 
-const prisma = new PrismaClient();
+// Global prisma instance
+let prisma: PrismaClient;
+
+if (process.env.NODE_ENV === 'production') {
+  prisma = new PrismaClient();
+} else {
+  // @ts-ignore
+  if (!global.prisma) {
+    // @ts-ignore
+    global.prisma = new PrismaClient();
+  }
+  // @ts-ignore
+  prisma = global.prisma;
+}
 
 export async function POST(request: Request) {
   try {
@@ -72,7 +85,5 @@ export async function POST(request: Request) {
       { error: 'Giriş sırasında bir hata oluştu: ' + error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 } 
