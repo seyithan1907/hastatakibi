@@ -25,7 +25,6 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
   const [seciliDis, setSeciliDis] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [tedaviPlanlari, setTedaviPlanlari] = useState<TedaviPlani[]>([]);
-  const [aktifCene, setAktifCene] = useState<'ust' | 'alt'>('ust');
 
   const disNumaralari = {
     ustSag: ['18', '17', '16', '15', '14', '13', '12', '11'],
@@ -119,12 +118,26 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Yeni Tedavi Planı</h1>
-        <button
-          onClick={() => router.back()}
-          className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
-        >
-          Geri Dön
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => handleDisSecimi('ust')}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Üst Çene İşlemi
+          </button>
+          <button
+            onClick={() => handleDisSecimi('alt')}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Alt Çene İşlemi
+          </button>
+          <button
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+          >
+            Geri Dön
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -134,109 +147,78 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
       )}
 
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        {/* Çene Seçimi */}
-        <div className="flex justify-center gap-4 mb-8">
-          <button
-            onClick={() => setAktifCene('ust')}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              aktifCene === 'ust'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Üst Çene
-          </button>
-          <button
-            onClick={() => setAktifCene('alt')}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              aktifCene === 'alt'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Alt Çene
-          </button>
-        </div>
-
-        {/* Diş Butonları */}
         <div className="grid grid-cols-2 gap-8">
-          {aktifCene === 'ust' ? (
-            <>
-              {/* Üst Çene */}
-              <div className="flex justify-end gap-2">
-                {disNumaralari.ustSag.map((no) => (
-                  <button
-                    key={no}
-                    onClick={() => handleDisSecimi(no)}
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                      ${tedaviPlanlari.some(p => p.disNo === no)
-                        ? 'border-green-500 bg-green-100 text-green-700'
-                        : seciliDis === no 
-                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                        : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                  >
-                    {no}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-start gap-2">
-                {disNumaralari.ustSol.map((no) => (
-                  <button
-                    key={no}
-                    onClick={() => handleDisSecimi(no)}
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                      ${tedaviPlanlari.some(p => p.disNo === no)
-                        ? 'border-green-500 bg-green-100 text-green-700'
-                        : seciliDis === no 
-                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                        : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                  >
-                    {no}
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Alt Çene */}
-              <div className="flex justify-end gap-2">
-                {disNumaralari.altSag.map((no) => (
-                  <button
-                    key={no}
-                    onClick={() => handleDisSecimi(no)}
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                      ${tedaviPlanlari.some(p => p.disNo === no)
-                        ? 'border-green-500 bg-green-100 text-green-700'
-                        : seciliDis === no 
-                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                        : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                  >
-                    {no}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-start gap-2">
-                {disNumaralari.altSol.map((no) => (
-                  <button
-                    key={no}
-                    onClick={() => handleDisSecimi(no)}
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
-                      ${tedaviPlanlari.some(p => p.disNo === no)
-                        ? 'border-green-500 bg-green-100 text-green-700'
-                        : seciliDis === no 
-                        ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                        : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                  >
-                    {no}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          {/* Üst Dişler */}
+          <div className="flex justify-end gap-2">
+            {disNumaralari.ustSag.map((no) => (
+              <button
+                key={no}
+                onClick={() => handleDisSecimi(no)}
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                  ${tedaviPlanlari.some(p => p.disNo === no)
+                    ? 'border-green-500 bg-green-100 text-green-700'
+                    : seciliDis === no 
+                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }`}
+              >
+                {no}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-start gap-2">
+            {disNumaralari.ustSol.map((no) => (
+              <button
+                key={no}
+                onClick={() => handleDisSecimi(no)}
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                  ${tedaviPlanlari.some(p => p.disNo === no)
+                    ? 'border-green-500 bg-green-100 text-green-700'
+                    : seciliDis === no 
+                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }`}
+              >
+                {no}
+              </button>
+            ))}
+          </div>
+
+          {/* Alt Dişler */}
+          <div className="flex justify-end gap-2">
+            {disNumaralari.altSag.map((no) => (
+              <button
+                key={no}
+                onClick={() => handleDisSecimi(no)}
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                  ${tedaviPlanlari.some(p => p.disNo === no)
+                    ? 'border-green-500 bg-green-100 text-green-700'
+                    : seciliDis === no 
+                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }`}
+              >
+                {no}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-start gap-2">
+            {disNumaralari.altSol.map((no) => (
+              <button
+                key={no}
+                onClick={() => handleDisSecimi(no)}
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium
+                  ${tedaviPlanlari.some(p => p.disNo === no)
+                    ? 'border-green-500 bg-green-100 text-green-700'
+                    : seciliDis === no 
+                    ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }`}
+              >
+                {no}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -248,7 +230,9 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
             {tedaviPlanlari.map((plan, index) => (
               <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <span className="font-medium text-gray-900">Diş {plan.disNo}:</span>
+                  <span className="font-medium text-gray-900">
+                    {plan.disNo === 'ust' ? 'Üst Çene' : plan.disNo === 'alt' ? 'Alt Çene' : `Diş ${plan.disNo}`}:
+                  </span>
                   <span className="ml-2 text-gray-600">{plan.islem}</span>
                 </div>
                 <div className="flex items-center gap-4">
@@ -288,7 +272,7 @@ export default function TedaviPlani({ params }: { params: { id: string } }) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {seciliDis} Numaralı Diş İçin İşlemler
+              {seciliDis === 'ust' ? 'Üst Çene' : seciliDis === 'alt' ? 'Alt Çene' : `${seciliDis} Numaralı Diş`} İçin İşlemler
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {islemler.map((islem) => (
