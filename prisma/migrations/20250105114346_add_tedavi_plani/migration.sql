@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE "TedaviPlani" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "hastaId" INTEGER NOT NULL,
+    "disNo" INTEGER NOT NULL,
+    "islem" TEXT NOT NULL,
+    "durum" TEXT NOT NULL DEFAULT 'BEKLEMEDE',
+    "notlar" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "TedaviPlani_hastaId_fkey" FOREIGN KEY ("hastaId") REFERENCES "Hasta" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

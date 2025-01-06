@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hasta {
+  id            Int           @id @default(autoincrement())
+  tcKimlik      String       @unique
+  ad            String
+  soyad         String
+  dogumTarihi   DateTime
+  telefon       String
+  email         String?
+  adres         String?
+  alinanUcret   Float        @default(0)
+  toplamIndirim Float?       // İndirimli toplam fiyat (null ise normal fiyat geçerli)
+  tedaviler     TedaviPlani[]
+  odemeler      Odeme[]
+  doktorId      Int          // Hastanın atandığı doktor
+  doktor        User         @relation(fields: [doktorId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model TedaviPlani {
+  id          Int      @id @default(autoincrement())
+  hastaId     Int
+  hasta       Hasta    @relation(fields: [hastaId], references: [id])
+  disNo       String   // Diş numarası veya "ust"/"alt" çene
+  islem       String
+  durum       String   @default("Bekliyor") // Bekliyor, Tamamlandı, İptal
+  fiyat       Float    @default(0)
+  odenen      Float    @default(0)
+  notlar      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Islem {
+  id        Int      @id @default(autoincrement())
+  ad        String
+  fiyat     Float
+  aciklama  String?
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Odeme {
+  id        Int      @id @default(autoincrement())
+  hastaId   Int
+  hasta     Hasta    @relation(fields: [hastaId], references: [id])
+  miktar    Float
+  tip       String   // Nakit, Kredi Kartı, Havale/EFT
+  tarih     DateTime @default(now())
+  notlar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   // 'admin' veya 'doctor'
+  ad        String
+  soyad     String
+  email     String   @unique
+  aktif     Boolean  @default(true)
+  hastalar  Hasta[]  // Doktorun hastaları
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
