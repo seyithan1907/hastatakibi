@@ -1,23 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient;
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    log: ['error'],
-    errorFormat: 'minimal',
-  });
-} else {
-  // @ts-ignore
-  if (!global.prisma) {
-    // @ts-ignore
-    global.prisma = new PrismaClient({
-      log: ['query', 'error', 'warn'],
-      errorFormat: 'pretty',
-    });
-  }
-  // @ts-ignore
-  prisma = global.prisma;
+const prismaOptions = {
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  errorFormat: process.env.NODE_ENV === 'development' ? 'pretty' : 'minimal',
+};
+
+const prisma = global.prisma || new PrismaClient(prismaOptions);
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
 }
 
 export { prisma }; 
