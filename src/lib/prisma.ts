@@ -4,10 +4,15 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+const dbUrl = process.env.DATABASE_URL || '';
+const dbUrlWithParams = dbUrl.includes('?') 
+  ? `${dbUrl}&statement_cache_size=0&pool_timeout=0` 
+  : `${dbUrl}?statement_cache_size=0&pool_timeout=0`;
+
 const prismaOptions = {
   datasources: {
     db: {
-      url: process.env.DATABASE_URL,
+      url: dbUrlWithParams,
     },
   },
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
