@@ -54,17 +54,17 @@ export async function DELETE(
     const hasta = await prisma.hasta.findUnique({
       where: { id: hastaId },
       include: {
-        tedaviPlanlari: true
+        tedaviler: true
       }
     });
     
     console.log('Bulunan hasta bilgisi:', hasta ? {
       id: hasta.id,
-      tedaviSayisi: hasta.tedaviPlanlari?.length,
+      tedaviSayisi: hasta.tedaviler?.length,
       toplamIndirim: hasta.toplamIndirim
     } : 'Hasta bulunamadı');
 
-    if (!hasta || !hasta.tedaviPlanlari) {
+    if (!hasta || !hasta.tedaviler) {
       return NextResponse.json(
         { error: 'Hasta veya tedavi planları bulunamadı' },
         { status: 404 }
@@ -72,7 +72,7 @@ export async function DELETE(
     }
 
     // Silinecek tedavi planını bul
-    const silinecekTedavi = hasta.tedaviPlanlari.find(t => t.id === tedaviIdInt);
+    const silinecekTedavi = hasta.tedaviler.find(t => t.id === tedaviIdInt);
     console.log('Silinecek tedavi planı:', silinecekTedavi || 'Bulunamadı');
     
     if (!silinecekTedavi) {
@@ -95,11 +95,11 @@ export async function DELETE(
     }
 
     // Toplam tutarları hesapla (silinecek tedavi hariç)
-    const kalanTedaviler = hasta.tedaviPlanlari.filter(t => t.id !== tedaviIdInt);
+    const kalanTedaviler = hasta.tedaviler.filter(t => t.id !== tedaviIdInt);
     const toplamFiyat = kalanTedaviler.reduce((acc, t) => acc + t.fiyat, 0);
     
     // İndirim oranını hesapla (mevcut toplam indirimden)
-    const mevcutToplamFiyat = hasta.tedaviPlanlari.reduce((acc, t) => acc + t.fiyat, 0);
+    const mevcutToplamFiyat = hasta.tedaviler.reduce((acc, t) => acc + t.fiyat, 0);
     const indirimOrani = hasta.toplamIndirim 
       ? (mevcutToplamFiyat - hasta.toplamIndirim) / mevcutToplamFiyat 
       : 1;
