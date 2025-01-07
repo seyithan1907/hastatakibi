@@ -42,9 +42,13 @@ export async function DELETE(
   { params }: { params: { id: string; tedaviId: string } }
 ) {
   try {
+    console.log('DELETE isteği başladı. Parametreler:', params);
+    
     const { id, tedaviId } = await params;
     const hastaId = parseInt(id);
     const tedaviIdInt = parseInt(tedaviId);
+    
+    console.log('Parse edilmiş ID\'ler:', { hastaId, tedaviIdInt });
 
     // Önce hastanın tüm tedavi planlarını ve hasta bilgisini getir
     const hasta = await prisma.hasta.findUnique({
@@ -53,6 +57,12 @@ export async function DELETE(
         tedaviPlanlari: true
       }
     });
+    
+    console.log('Bulunan hasta bilgisi:', hasta ? {
+      id: hasta.id,
+      tedaviSayisi: hasta.tedaviPlanlari?.length,
+      toplamIndirim: hasta.toplamIndirim
+    } : 'Hasta bulunamadı');
 
     if (!hasta || !hasta.tedaviPlanlari) {
       return NextResponse.json(
@@ -63,6 +73,8 @@ export async function DELETE(
 
     // Silinecek tedavi planını bul
     const silinecekTedavi = hasta.tedaviPlanlari.find(t => t.id === tedaviIdInt);
+    console.log('Silinecek tedavi planı:', silinecekTedavi || 'Bulunamadı');
+    
     if (!silinecekTedavi) {
       return NextResponse.json(
         { error: 'Tedavi planı bulunamadı' },
@@ -72,6 +84,10 @@ export async function DELETE(
 
     // Tedavi planına ait toplam ödeme miktarını kontrol et
     if (silinecekTedavi.odenen > 0) {
+      console.log('Ödeme yapılmış tedavi planı:', { 
+        tedaviId: silinecekTedavi.id, 
+        odenenMiktar: silinecekTedavi.odenen 
+      });
       return NextResponse.json(
         { error: 'Ödeme yapılmış tedavi planı silinemez. Önce ödemeleri silmelisiniz.' },
         { status: 400 }
@@ -91,6 +107,14 @@ export async function DELETE(
     // Yeni indirimli toplam tutarı hesapla
     const yeniIndirimliTutar = toplamFiyat * indirimOrani;
 
+    console.log('Hesaplanan değerler:', {
+      kalanTedaviSayisi: kalanTedaviler.length,
+      toplamFiyat,
+      mevcutToplamFiyat,
+      indirimOrani,
+      yeniIndirimliTutar
+    });
+
     // Tedavi planını sil ve gerekli güncellemeleri yap
     const [deletedTedavi, updatedHasta] = await prisma.$transaction([
       // Tedavi planını sil
@@ -109,6 +133,17 @@ export async function DELETE(
       })
     ]);
 
+    console.log('İşlem sonucu:', {
+      deletedTedavi: {
+        id: deletedTedavi.id,
+        fiyat: deletedTedavi.fiyat
+      },
+      updatedHasta: {
+        id: updatedHasta.id,
+        yeniToplamIndirim: updatedHasta.toplamIndirim
+      }
+    });
+
     return NextResponse.json({ 
       data: { 
         tedavi: deletedTedavi, 
@@ -116,9 +151,17 @@ export async function DELETE(
       } 
     });
   } catch (error) {
-    console.error('Tedavi planı silinirken hata:', error);
+    console.error('Tedavi planı silinirken hata detayı:', {
+      message: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      stack: error instanceof Error ? error.stack : undefined,
+      error
+    });
+    
     return NextResponse.json(
-      { error: 'Tedavi planı silinemedi' },
+      { 
+        error: 'Tedavi planı silinemedi',
+        details: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      },
       { status: 500 }
     );
   }
