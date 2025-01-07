@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
   return (
@@ -72,9 +73,12 @@ export default function Home() {
               Daha fazla bilgi almak veya demo talep etmek için bizimle iletişime geçin.
             </p>
             <div className="mt-6">
-              <a href="mailto:seyithan1996@gmail.com" className="text-blue-600 hover:text-blue-500">
-                seyithan1996@gmail.com
-              </a>
+              <div className="flex items-center gap-2">
+                <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                <a href="mailto:info@hastatakibi.com" className="text-gray-600 hover:text-gray-800">
+                  info@hastatakibi.com
+                </a>
+              </div>
             </div>
           </div>
         </div>
