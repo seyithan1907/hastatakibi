@@ -167,7 +167,7 @@ export default function Dashboard() {
 
               {userInfo?.role === 'admin' && (
                 <a
-                  href="/users"
+                  href="/uyeler"
                   className="block p-6 bg-yellow-50 dark:bg-yellow-900 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-800 transition-colors"
                 >
                   <h2 className="text-xl font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Kullanıcılar</h2>
