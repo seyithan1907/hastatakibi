@@ -51,10 +51,10 @@ model Islem {
   id        Int      @id @default(autoincrement())
   ad        String
   fiyat     Float
-  aciklama  String?
-  aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  doktorId  Int     // Hangi doktora ait olduğunu belirtmek için
+  doktor    User    @relation(fields: [doktorId], references: [id])
 }
 
 model Odeme {
@@ -73,12 +73,13 @@ model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
   password  String
-  role      String   // 'admin' veya 'doctor'
+  role      String   @default("doctor")
   ad        String
   soyad     String
-  email     String   @unique
+  email     String?
   aktif     Boolean  @default(true)
-  hastalar  Hasta[]  // Doktorun hastaları
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  islemler  Islem[]  // Doktorun işlem listesi
+  hastalar  Hasta[]  // Doktorun hastaları
 }
