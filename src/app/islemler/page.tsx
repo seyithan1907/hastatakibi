@@ -114,10 +114,10 @@ export default function Islemler() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
           >
-            Ana Sayfa
+            Dashboard
           </button>
           <h1 className="text-2xl font-bold text-gray-800">İşlem Listesi</h1>
         </div>
