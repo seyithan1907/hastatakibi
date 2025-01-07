@@ -117,11 +117,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Hoş Geldiniz, {userInfo?.ad} {userInfo?.soyad}
             </h1>
             <div className="flex gap-4">
@@ -141,8 +141,8 @@ export default function Dashboard() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-              <p className="text-red-700">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 mb-6">
+              <p className="text-red-700 dark:text-red-200">{error}</p>
             </div>
           )}
 
@@ -151,38 +151,38 @@ export default function Dashboard() {
             <div className="space-y-4">
               <a
                 href="/hastalar"
-                className="block p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                className="block p-6 bg-blue-50 dark:bg-blue-900 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
               >
-                <h2 className="text-xl font-semibold text-blue-900 mb-2">Hasta Listesi</h2>
-                <p className="text-blue-700">Tüm hastaları görüntüle ve yönet</p>
+                <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">Hasta Listesi</h2>
+                <p className="text-blue-700 dark:text-blue-200">Tüm hastaları görüntüle ve yönet</p>
               </a>
 
               <a
                 href="/islemler"
-                className="block p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                className="block p-6 bg-purple-50 dark:bg-purple-900 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors"
               >
-                <h2 className="text-xl font-semibold text-purple-900 mb-2">İşlemler</h2>
-                <p className="text-purple-700">İşlem listesini görüntüle ve düzenle</p>
+                <h2 className="text-xl font-semibold text-purple-900 dark:text-purple-100 mb-2">İşlemler</h2>
+                <p className="text-purple-700 dark:text-purple-200">İşlem listesini görüntüle ve düzenle</p>
               </a>
 
               {userInfo?.role === 'admin' && (
                 <a
-                  href="/uyeler"
-                  className="block p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+                  href="/users"
+                  className="block p-6 bg-yellow-50 dark:bg-yellow-900 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-800 transition-colors"
                 >
-                  <h2 className="text-xl font-semibold text-yellow-900 mb-2">Kullanıcılar</h2>
-                  <p className="text-yellow-700">Kullanıcıları yönet</p>
+                  <h2 className="text-xl font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Kullanıcılar</h2>
+                  <p className="text-yellow-700 dark:text-yellow-200">Kullanıcıları yönet</p>
                 </a>
               )}
             </div>
 
             {/* Sağ Taraf: Yeni Hasta Kaydı */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Yeni Hasta Kaydı</h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Yeni Hasta Kaydı</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="ad" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="ad" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Ad
                     </label>
                     <input
@@ -192,12 +192,12 @@ export default function Dashboard() {
                       value={formData.ad}
                       onChange={handleChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="soyad" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="soyad" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Soyad
                     </label>
                     <input
@@ -207,12 +207,12 @@ export default function Dashboard() {
                       value={formData.soyad}
                       onChange={handleChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="tcKimlik" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="tcKimlik" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       T.C. Kimlik No
                     </label>
                     <input
@@ -224,12 +224,12 @@ export default function Dashboard() {
                       required
                       maxLength={11}
                       pattern="[0-9]{11}"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="dogumTarihi" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="dogumTarihi" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Doğum Tarihi
                     </label>
                     <input
@@ -239,12 +239,12 @@ export default function Dashboard() {
                       value={formData.dogumTarihi}
                       onChange={handleChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="telefon" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="telefon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Telefon
                     </label>
                     <input
@@ -254,12 +254,12 @@ export default function Dashboard() {
                       value={formData.telefon}
                       onChange={handleChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       E-posta
                     </label>
                     <input
@@ -268,13 +268,13 @@ export default function Dashboard() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="adres" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="adres" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Adres
                   </label>
                   <textarea
@@ -283,7 +283,7 @@ export default function Dashboard() {
                     value={formData.adres}
                     onChange={handleChange}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
