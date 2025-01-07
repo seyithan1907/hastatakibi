@@ -21,6 +21,35 @@ export default function Islemler() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [yeniIslem, setYeniIslem] = useState({ ad: "", fiyat: "" });
+  const [aramaMetni, setAramaMetni] = useState("");
+  const [aramaAlani, setAramaAlani] = useState<"islem" | "doktor">("islem");
+
+  const filtrelenmisIslemler = islemler.filter((islem) => {
+    if (aramaAlani === "islem") {
+      return islem.ad.toLowerCase().includes(aramaMetni.toLowerCase());
+    } else {
+      return islem.doktor && 
+        (`${islem.doktor.ad} ${islem.doktor.soyad}`.toLowerCase().includes(aramaMetni.toLowerCase()) ||
+         islem.doktor.username.toLowerCase().includes(aramaMetni.toLowerCase()));
+    }
+  });
+
+  const handleIslemSil = async (id: number) => {
+    if (!window.confirm("Bu işlemi silmek istediğinizden emin misiniz?")) return;
+    
+    try {
+      const res = await fetch(`/api/islemler/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("İşlem silinemedi");
+
+      setIslemler(prev => prev.filter(islem => islem.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError("İşlem silinirken bir hata oluştu");
+    }
+  };
 
   useEffect(() => {
     const fetchIslemler = async () => {
@@ -83,13 +112,41 @@ export default function Islemler() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">İşlem Listesi</h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/")}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            Ana Sayfa
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">İşlem Listesi</h1>
+        </div>
         <button
           onClick={() => setShowModal(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Yeni İşlem Ekle
         </button>
+      </div>
+
+      <div className="mb-6 flex gap-4">
+        <div className="flex-1">
+          <input
+            type="text"
+            value={aramaMetni}
+            onChange={(e) => setAramaMetni(e.target.value)}
+            placeholder="Arama..."
+            className="w-full px-4 py-2 border rounded-lg"
+          />
+        </div>
+        <select
+          value={aramaAlani}
+          onChange={(e) => setAramaAlani(e.target.value as "islem" | "doktor")}
+          className="px-4 py-2 border rounded-lg"
+        >
+          <option value="islem">İşlem Adına Göre</option>
+          <option value="doktor">Doktora Göre</option>
+        </select>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -107,10 +164,13 @@ export default function Islemler() {
                   Doktor
                 </th>
               )}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                İşlem Sil
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {islemler.map((islem) => (
+            {filtrelenmisIslemler.map((islem) => (
               <tr key={islem.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {islem.ad}
@@ -123,6 +183,14 @@ export default function Islemler() {
                     {islem.doktor.ad} {islem.doktor.soyad} ({islem.doktor.username})
                   </td>
                 )}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <button
+                    onClick={() => handleIslemSil(islem.id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    Sil
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

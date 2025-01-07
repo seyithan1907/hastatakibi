@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { cookies } from 'next/headers';
 
 export async function PATCH(
   request: Request,
@@ -33,17 +34,57 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = parseInt(params.id);
+    // Cookie'den kullanıcı bilgilerini al
+    const cookieStore = cookies();
+    const userId = cookieStore.get('userId')?.value;
+    const username = cookieStore.get('username')?.value;
 
-    const islem = await prisma.islem.delete({
-      where: { id },
+    if (!userId || !username) {
+      return NextResponse.json(
+        { error: 'Oturum bulunamadı' },
+        { status: 401 }
+      );
+    }
+
+    const islemId = parseInt(params.id);
+    if (isNaN(islemId)) {
+      return NextResponse.json(
+        { error: 'Geçersiz işlem ID' },
+        { status: 400 }
+      );
+    }
+
+    // İşlemi bul
+    const islem = await prisma.islem.findUnique({
+      where: { id: islemId },
+      include: { doktor: true }
     });
 
-    return NextResponse.json({ data: islem });
+    if (!islem) {
+      return NextResponse.json(
+        { error: 'İşlem bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    // Sadece işlemi oluşturan doktor veya seyithan1907 silebilir
+    if (username !== 'seyithan1907' && islem.doktorId !== parseInt(userId)) {
+      return NextResponse.json(
+        { error: 'Bu işlemi silme yetkiniz yok' },
+        { status: 403 }
+      );
+    }
+
+    // İşlemi sil
+    await prisma.islem.delete({
+      where: { id: islemId }
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('İşlem silme hatası:', error);
+    console.error('İşlem silinirken hata:', error);
     return NextResponse.json(
-      { error: 'İşlem silinirken bir hata oluştu.' },
+      { error: 'İşlem silinemedi' },
       { status: 500 }
     );
   }
