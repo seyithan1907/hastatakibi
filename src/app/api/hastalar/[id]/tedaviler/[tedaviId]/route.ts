@@ -100,12 +100,14 @@ export async function DELETE(
     
     // İndirim oranını hesapla (mevcut toplam indirimden)
     const mevcutToplamFiyat = hasta.tedaviler.reduce((acc, t) => acc + t.fiyat, 0);
+    
+    // İndirim oranını hesapla (örn: %20 indirim için 0.8)
     const indirimOrani = hasta.toplamIndirim 
-      ? (mevcutToplamFiyat - hasta.toplamIndirim) / mevcutToplamFiyat 
+      ? hasta.toplamIndirim / mevcutToplamFiyat
       : 1;
 
     // Yeni indirimli toplam tutarı hesapla
-    const yeniIndirimliTutar = toplamFiyat * indirimOrani;
+    const yeniIndirimliTutar = Math.round(toplamFiyat * indirimOrani);
 
     console.log('Hesaplanan değerler:', {
       kalanTedaviSayisi: kalanTedaviler.length,
