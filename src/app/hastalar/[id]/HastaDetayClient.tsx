@@ -283,15 +283,22 @@ export default function HastaDetayClient({ id }: { id: string }) {
         method: 'DELETE',
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Tedavi planı silinemedi');
+        throw new Error(data.error || data.details || 'Tedavi planı silinemedi');
       }
 
       // Tedavi listesini güncelle
       setTedaviler(prev => prev.filter(t => t.id !== tedaviId));
+      
+      // Hasta bilgisini güncelle (indirim değişmiş olabilir)
+      if (data.data?.hasta) {
+        setHasta(prevHasta => prevHasta ? { ...prevHasta, toplamIndirim: data.data.hasta.toplamIndirim } : null);
+      }
     } catch (err) {
       console.error('Tedavi planı silme hatası:', err);
-      setError('Tedavi planı silinirken bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'Tedavi planı silinirken bir hata oluştu');
     }
   };
 
