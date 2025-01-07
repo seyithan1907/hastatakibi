@@ -2,67 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Cookies from 'js-cookie';
 
-interface User {
-  id: number;
-  username: string;
-  role: 'admin' | 'doctor';
-  ad: string;
-  soyad: string;
-  email: string;
-  aktif: boolean;
-}
-
-export default function UyeYonetimi() {
+export default function Users() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [users, setUsers] = useState<User[]>([]);
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    role: 'doctor',
     ad: '',
     soyad: '',
     email: '',
+    role: 'doctor',
   });
 
-  // Admin kontrolü
   useEffect(() => {
-    const userRole = Cookies.get('auth');
-    if (userRole !== 'admin') {
+    const username = Cookies.get('username');
+    if (username !== 'seyithan1907') {
       router.push('/dashboard');
+      return;
     }
-  }, [router]);
 
-  // Kullanıcıları getir
-  useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [router]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users');
-      if (!response.ok) {
-        throw new Error('Kullanıcılar getirilemedi');
-      }
-      const data = await response.json();
+      const res = await fetch('/api/users');
+      if (!res.ok) throw new Error('Kullanıcılar getirilemedi');
+      const data = await res.json();
       setUsers(data);
     } catch (err) {
-      console.error('Kullanıcıları getirme hatası:', err);
+      console.error(err);
       setError('Kullanıcılar yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
     try {
-      const response = await fetch('/api/users', {
+      const res = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,249 +54,117 @@ export default function UyeYonetimi() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Kullanıcı eklenemedi');
-      }
+      if (!res.ok) throw new Error('Kullanıcı eklenemedi');
 
-      const newUser = await response.json();
-      setUsers([...users, newUser]);
-      
+      setShowModal(false);
       setFormData({
         username: '',
         password: '',
-        role: 'doctor',
         ad: '',
         soyad: '',
         email: '',
+        role: 'doctor',
       });
-
-      // Sayfayı yenile
       fetchUsers();
     } catch (err) {
-      setError('Kullanıcı eklenirken bir hata oluştu');
       console.error(err);
-    } finally {
-      setLoading(false);
+      setError('Kullanıcı eklenirken bir hata oluştu');
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
 
-  const toggleUserStatus = async (userId: number) => {
     try {
-      const user = users.find(u => u.id === userId);
-      if (!user) return;
-
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ aktif: !user.aktif }),
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
       });
 
-      if (!response.ok) {
-        throw new Error('Kullanıcı durumu güncellenemedi');
-      }
+      if (!res.ok) throw new Error('Kullanıcı silinemedi');
 
-      // Kullanıcıları yeniden yükle
       fetchUsers();
     } catch (err) {
-      console.error('Kullanıcı durumu güncelleme hatası:', err);
-      setError('Kullanıcı durumu güncellenirken bir hata oluştu');
+      console.error(err);
+      setError('Kullanıcı silinirken bir hata oluştu');
     }
   };
+
+  if (loading) {
+    return <div className="text-center p-6">Yükleniyor...</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Üye Yönetimi</h1>
-          <Link href="/dashboard">
-            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg>
-              Dashboard'a Dön
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Dashboard
             </button>
-          </Link>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Kullanıcı Yönetimi</h1>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Yeni Kullanıcı Ekle
+          </button>
         </div>
 
-        <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Yeni Üye Ekle</h2>
-          
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 mb-6">
+            <p className="text-red-700 dark:text-red-200">{error}</p>
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                  Kullanıcı Adı
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Şifre
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="ad" className="block text-sm font-medium text-gray-700">
-                  Ad
-                </label>
-                <input
-                  type="text"
-                  id="ad"
-                  name="ad"
-                  value={formData.ad}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="soyad" className="block text-sm font-medium text-gray-700">
-                  Soyad
-                </label>
-                <input
-                  type="text"
-                  id="soyad"
-                  name="soyad"
-                  value={formData.soyad}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  E-posta
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                  Rol
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="doctor">Doktor</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {loading ? 'Kaydediliyor...' : 'Kaydet'}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Kullanıcı Adı
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Ad Soyad
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   E-posta
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Rol
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   İşlemler
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {users.map((user: any) => (
                 <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {user.username}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {user.ad} {user.soyad}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.role === 'admin' ? 'Admin' : 'Doktor'}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    {user.role === 'admin' ? 'Yönetici' : 'Doktor'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      user.aktif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.aktif ? 'Aktif' : 'Pasif'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() => toggleUserStatus(user.id)}
-                      className={`px-3 py-1 rounded-md text-sm font-medium text-white ${
-                        user.aktif ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
-                      {user.aktif ? 'Pasif Yap' : 'Aktif Yap'}
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    {user.username !== 'seyithan1907' && (
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Sil
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -320,6 +172,115 @@ export default function UyeYonetimi() {
           </table>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Yeni Kullanıcı Ekle</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Kullanıcı Adı
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Şifre
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="ad" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Ad
+                </label>
+                <input
+                  type="text"
+                  id="ad"
+                  value={formData.ad}
+                  onChange={(e) => setFormData({ ...formData, ad: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="soyad" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Soyad
+                </label>
+                <input
+                  type="text"
+                  id="soyad"
+                  value={formData.soyad}
+                  onChange={(e) => setFormData({ ...formData, soyad: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  E-posta
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Rol
+                </label>
+                <select
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="doctor">Doktor</option>
+                  <option value="admin">Yönetici</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-500"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+                >
+                  Kaydet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
