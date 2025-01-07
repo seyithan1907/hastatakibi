@@ -46,12 +46,15 @@ export async function DELETE(
     const hastaId = parseInt(id);
     const tedaviIdInt = parseInt(tedaviId);
 
-    // Önce tedavi planını bul
+    // Önce tedavi planını ve ilişkili ödemeleri bul
     const tedavi = await prisma.tedaviPlani.findUnique({
       where: {
         id: tedaviIdInt,
         hastaId: hastaId,
       },
+      include: {
+        hasta: true
+      }
     });
 
     if (!tedavi) {
@@ -61,8 +64,16 @@ export async function DELETE(
       );
     }
 
-    // Tedavi planını sil ve hastanın toplam indirimini güncelle
-    const [deletedTedavi, hasta] = await prisma.$transaction([
+    // Tedavi planına ait toplam ödeme miktarını kontrol et
+    if (tedavi.odenen > 0) {
+      return NextResponse.json(
+        { error: 'Ödeme yapılmış tedavi planı silinemez. Önce ödemeleri silmelisiniz.' },
+        { status: 400 }
+      );
+    }
+
+    // Tedavi planını sil ve gerekli güncellemeleri yap
+    const [deletedTedavi, updatedHasta] = await prisma.$transaction([
       // Tedavi planını sil
       prisma.tedaviPlani.delete({
         where: {
@@ -75,13 +86,18 @@ export async function DELETE(
         where: { id: hastaId },
         data: {
           toplamIndirim: tedavi.indirimli === null ? null : {
-            decrement: tedavi.fiyat - tedavi.indirimli
+            decrement: tedavi.fiyat - (tedavi.indirimli || 0)
           }
         },
-      }),
+      })
     ]);
 
-    return NextResponse.json({ data: { tedavi: deletedTedavi, hasta } });
+    return NextResponse.json({ 
+      data: { 
+        tedavi: deletedTedavi, 
+        hasta: updatedHasta 
+      } 
+    });
   } catch (error) {
     console.error('Tedavi planı silinirken hata:', error);
     return NextResponse.json(
