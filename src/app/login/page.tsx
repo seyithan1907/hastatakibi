@@ -27,11 +27,12 @@ export default function Login() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Giriş başarısız');
       }
+
+      const data = await response.json();
 
       // Cookie'leri ayarla
       Cookies.set('auth', data.role);
