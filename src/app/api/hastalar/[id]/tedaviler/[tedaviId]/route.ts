@@ -46,18 +46,24 @@ export async function DELETE(
     const hastaId = parseInt(id);
     const tedaviIdInt = parseInt(tedaviId);
 
-    // Önce tedavi planını ve ilişkili ödemeleri bul
-    const tedavi = await prisma.tedaviPlani.findUnique({
-      where: {
-        id: tedaviIdInt,
-        hastaId: hastaId,
-      },
+    // Önce hastanın tüm tedavi planlarını ve hasta bilgisini getir
+    const hasta = await prisma.hasta.findUnique({
+      where: { id: hastaId },
       include: {
-        hasta: true
+        tedaviPlanlari: true
       }
     });
 
-    if (!tedavi) {
+    if (!hasta || !hasta.tedaviPlanlari) {
+      return NextResponse.json(
+        { error: 'Hasta veya tedavi planları bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    // Silinecek tedavi planını bul
+    const silinecekTedavi = hasta.tedaviPlanlari.find(t => t.id === tedaviIdInt);
+    if (!silinecekTedavi) {
       return NextResponse.json(
         { error: 'Tedavi planı bulunamadı' },
         { status: 404 }
@@ -65,12 +71,25 @@ export async function DELETE(
     }
 
     // Tedavi planına ait toplam ödeme miktarını kontrol et
-    if (tedavi.odenen > 0) {
+    if (silinecekTedavi.odenen > 0) {
       return NextResponse.json(
         { error: 'Ödeme yapılmış tedavi planı silinemez. Önce ödemeleri silmelisiniz.' },
         { status: 400 }
       );
     }
+
+    // Toplam tutarları hesapla (silinecek tedavi hariç)
+    const kalanTedaviler = hasta.tedaviPlanlari.filter(t => t.id !== tedaviIdInt);
+    const toplamFiyat = kalanTedaviler.reduce((acc, t) => acc + t.fiyat, 0);
+    
+    // İndirim oranını hesapla (mevcut toplam indirimden)
+    const mevcutToplamFiyat = hasta.tedaviPlanlari.reduce((acc, t) => acc + t.fiyat, 0);
+    const indirimOrani = hasta.toplamIndirim 
+      ? (mevcutToplamFiyat - hasta.toplamIndirim) / mevcutToplamFiyat 
+      : 1;
+
+    // Yeni indirimli toplam tutarı hesapla
+    const yeniIndirimliTutar = toplamFiyat * indirimOrani;
 
     // Tedavi planını sil ve gerekli güncellemeleri yap
     const [deletedTedavi, updatedHasta] = await prisma.$transaction([
@@ -85,9 +104,7 @@ export async function DELETE(
       prisma.hasta.update({
         where: { id: hastaId },
         data: {
-          toplamIndirim: tedavi.indirimli === null ? null : {
-            decrement: tedavi.fiyat - (tedavi.indirimli || 0)
-          }
+          toplamIndirim: yeniIndirimliTutar === toplamFiyat ? null : yeniIndirimliTutar
         },
       })
     ]);
