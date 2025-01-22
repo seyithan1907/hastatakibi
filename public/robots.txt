@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /*?redirect=*
+Disallow: /api/
+Disallow: /dashboard/
+
+# Canonical domain
+Host: https://hastatakibi.com
+
+Sitemap: https://hastatakibi.com/sitemap.xml 

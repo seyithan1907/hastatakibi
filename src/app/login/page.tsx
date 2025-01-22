@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
+import Head from 'next/head';
 
 function LoginForm() {
   const router = useRouter();
@@ -60,6 +61,9 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Giriş Yap
@@ -131,8 +135,13 @@ function LoginForm() {
 
 export default function Login() {
   return (
-    <Suspense fallback={<div>Yükleniyor...</div>}>
-      <LoginForm />
-    </Suspense>
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
+      <Suspense fallback={<div>Yükleniyor...</div>}>
+        <LoginForm />
+      </Suspense>
+    </>
   );
 } 
