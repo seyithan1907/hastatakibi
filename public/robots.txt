@@ -4,6 +4,9 @@ Disallow: /login
 Disallow: /*?redirect=*
 Disallow: /api/
 Disallow: /dashboard/
+Disallow: /_next/static/media/
+Disallow: /favicon.ico
+Disallow: /_next/static/
 
 # Canonical domain
 Host: https://hastatakibi.com
