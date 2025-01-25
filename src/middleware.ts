@@ -4,26 +4,30 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
   
-  // HTTP'den HTTPS'e yönlendirme
+  // Önce protokol kontrolü
   if (url.protocol === 'http:') {
     url.protocol = 'https:'
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(url, { status: 301 })
   }
 
-  // www'dan www olmayan versiyona yönlendirme
+  // Sonra www kontrolü
   if (url.hostname.startsWith('www.')) {
-    url.hostname = url.hostname.replace('www.', '')
-    return NextResponse.redirect(url)
+    const newUrl = new URL(request.url)
+    newUrl.hostname = newUrl.hostname.replace('www.', '')
+    return NextResponse.redirect(newUrl, { status: 301 })
   }
 
   // Korumalı rotalar
   const protectedPaths = ['/dashboard', '/hastalar', '/islemler', '/uyeler']
   const path = request.nextUrl.pathname
 
+  // Login sayfasındayken auth kontrolü yapmayı atla
+  if (path === '/login') {
+    return NextResponse.next()
+  }
+
   // Eğer korumalı bir sayfaya erişilmeye çalışılıyorsa
   if (protectedPaths.some(prefix => path.startsWith(prefix))) {
-    // TODO: Gerçek oturum kontrolü yapılacak
-    // Şimdilik basit bir kontrol yapıyoruz
     const isAuthenticated = request.cookies.has('auth')
 
     if (!isAuthenticated) {
