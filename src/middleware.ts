@@ -4,16 +4,13 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
   
-  // Önce protokol kontrolü
-  if (url.protocol === 'http:') {
-    url.protocol = 'https:'
-    return NextResponse.redirect(url, { status: 301 })
-  }
-
-  // Sonra www kontrolü
-  if (url.hostname.startsWith('www.')) {
+  // Tek seferde hem protokol hem www kontrolü
+  if (url.protocol === 'http:' || url.hostname.startsWith('www.')) {
     const newUrl = new URL(request.url)
-    newUrl.hostname = newUrl.hostname.replace('www.', '')
+    newUrl.protocol = 'https:'
+    if (newUrl.hostname.startsWith('www.')) {
+      newUrl.hostname = newUrl.hostname.replace('www.', '')
+    }
     return NextResponse.redirect(newUrl, { status: 301 })
   }
 
